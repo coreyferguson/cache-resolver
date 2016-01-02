@@ -46,7 +46,7 @@ describe('CacheResolver', function() {
       })).to.eventually.be.rejectedWith(/Illegal argument.*callback/);
     });
 
-    it('should reject when callback is undefined', function() {
+    it('should reject when callback is null', function() {
       var cacheResolver = new CacheResolver();
       expect(cacheResolver.resolve({
         key: 'testKey',
