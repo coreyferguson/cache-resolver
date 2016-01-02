@@ -80,15 +80,28 @@
 	 * @param {number} [options.expireInSeconds] Number of seconds before expiring cache value.
 	 */
 	CacheResolver.prototype.resolve = function(options) {
+	  // input validation
+	  if (options.key === null || options.key === undefined || options.key === '') {
+	    return Promise.reject(new Error('Illegal argument: missing required option `key`.'));
+	  }
+	  if (options.callback === null ||  options.callback === undefined) {
+	    return Promise.reject(new Error('Illegal argument: missing required `callback` function.'));
+	  }
+	  // cache value already exists
 	  if (this._cache[options.key] !== undefined) {
 	    var value = this._cache[options.key];
-	    var timePassedInSeconds = (new Date().getTime() - value.time) / 1000;
-	    if (value.expireInSeconds === undefined || timePassedInSeconds < value.expireInSeconds) {
-	      return value.promise;
+	    value.expireInSeconds(options.expireInSeconds);
+	    // cache value has not expired
+	    var timePassedInSeconds = (new Date().getTime() - value.time()) / 1000;
+	    if (value.expireInSeconds() === undefined ||
+	        value.expireInSeconds() === null ||
+	        timePassedInSeconds < value.expireInSeconds()) {
+	      return value.promise();
 	    }
 	  }
+	  // cache empty or expired, execute callback
 	  this._cache[options.key] = new CacheValue(options.callback(), options.expireInSeconds);
-	  return this._cache[options.key].promise;
+	  return this._cache[options.key].promise();
 	};
 	
 	/**
@@ -96,7 +109,7 @@
 	 * @param {string} key Unique identifier for cache value.
 	 */
 	CacheResolver.prototype.remove = function(key) {
-	  delete this._cache(key);
+	  delete this._cache[key];
 	};
 	
 	/**
@@ -5614,10 +5627,37 @@
 
 	
 	function CacheValue(promise, expireInSeconds) {
-	  this.promise = promise;
-	  this.time = new Date().getTime();
-	  this.expireInSeconds = expireInSeconds;
+	  this._promise = promise;
+	  this._time = new Date().getTime();
+	  this._expireInSeconds = expireInSeconds;
 	}
+	
+	CacheValue.prototype.promise = function(promise) {
+	  if (promise !== undefined) {
+	    this._promise = promise;
+	    return this;
+	  } else {
+	    return this._promise;
+	  }
+	};
+	
+	CacheValue.prototype.time = function(time) {
+	  if (time !== undefined) {
+	    this._time = time;
+	    return this;
+	  } else {
+	    return this._time;
+	  }
+	};
+	
+	CacheValue.prototype.expireInSeconds = function(expireInSeconds) {
+	  if (expireInSeconds !== undefined) {
+	    this._expireInSeconds = expireInSeconds;
+	    return this;
+	  } else {
+	    return this._expireInSeconds;
+	  }
+	};
 	
 	module.exports = CacheValue;
 
