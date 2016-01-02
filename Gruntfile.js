@@ -19,5 +19,6 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['jscs', 'test:single', 'build']);
   grunt.registerTask('build', ['clean:dist', 'webpack', 'uglify']);
   grunt.registerTask('test:single', ['mochaTest', 'karma:single', 'cat:coverageSummary']);
+  grunt.registerTask('test:continuous', ['clean:build', 'karma:continuous']);
 
 };
