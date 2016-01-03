@@ -1,7 +1,7 @@
 {
   "name": "cache-resolver",
   "version": "0.1.1",
-  "description": "In-memory cache to retrieve and set values based promise resolution.",
+  "description": "In-memory cache to retrieve and set values based on promise resolution.",
   "main": "src/index.js",
   "scripts": {
     "test": "grunt test:single"
@@ -16,6 +16,10 @@
     "npm",
     "node"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:coreyferguson/cache-resolver.git"
+  },
   "author": "Corey Ferguson <corey.t.ferguson@gmail.com>",
   "license": "MIT",
   "dependencies": {

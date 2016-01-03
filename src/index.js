@@ -10,7 +10,16 @@ var CacheValue = require('./cache-value');
  * doesn't exist or has expired.
  *
  * @example
- * TODO
+ * var CacheResolver = require('cache-resolver');
+ * var cacheResolver = new CacheResolver()
+ * cacheResolver.resolve({
+ *   key: 'testKey',
+ *   callback: function() {
+ *     return Promise.resolve('value');
+ *   }
+ * }).then(function(result) {
+ *   console.log(result); // `value`
+ * });
  */
 function CacheResolver() {
   // cache of promises
