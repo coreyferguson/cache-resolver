@@ -4,6 +4,49 @@ var Promise = require('bluebird');
 
 describe('CacheResolver', function() {
 
+  describe('constructor', function() {
+
+    it('should accept default expiry', function() {
+      var cacheResolver = new CacheResolver({ expireInSeconds: 0.1 });
+      // set cached value
+      return expect(cacheResolver.resolve({
+        key: 'testKey',
+        callback: function() {
+          return Promise.resolve('1');
+        }
+      })
+      // retrieve from cache
+      .then(function(results) {
+        expect(results).to.equal('1');
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            cacheResolver.resolve({
+              key: 'testKey',
+              callback: function() {
+                return Promise.resolve('2');
+              }
+            }).then(resolve).catch(reject);
+          }, 50);
+        });
+      })
+      // cache should have expired by now
+      .then(function(results) {
+        expect(results).to.equal('1');
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            cacheResolver.resolve({
+              key: 'testKey',
+              callback: function() {
+                return Promise.resolve('3');
+              }
+            }).then(resolve).catch(reject);
+          }, 100);
+        });
+      })).to.eventually.equal('3');
+    });
+
+  });
+
   //////////////
   // .resolve //
   //////////////
@@ -12,7 +55,7 @@ describe('CacheResolver', function() {
 
     it('should reject when key is null', function() {
       var cacheResolver = new CacheResolver();
-      expect(cacheResolver.resolve({
+      return expect(cacheResolver.resolve({
         key: null,
         callback: function() {
           return Promise.resolve('value');
@@ -22,7 +65,7 @@ describe('CacheResolver', function() {
 
     it('should reject when key is undefined', function() {
       var cacheResolver = new CacheResolver();
-      expect(cacheResolver.resolve({
+      return expect(cacheResolver.resolve({
         callback: function() {
           return Promise.resolve('value');
         }
@@ -31,7 +74,7 @@ describe('CacheResolver', function() {
 
     it('should reject when key is empty', function() {
       var cacheResolver = new CacheResolver();
-      expect(cacheResolver.resolve({
+      return expect(cacheResolver.resolve({
         key: '',
         callback: function() {
           return Promise.resolve('value');
@@ -41,14 +84,14 @@ describe('CacheResolver', function() {
 
     it('should reject when callback is undefined', function() {
       var cacheResolver = new CacheResolver();
-      expect(cacheResolver.resolve({
+      return expect(cacheResolver.resolve({
         key: 'testKey'
       })).to.eventually.be.rejectedWith(/Illegal argument.*callback/);
     });
 
     it('should reject when callback is null', function() {
       var cacheResolver = new CacheResolver();
-      expect(cacheResolver.resolve({
+      return expect(cacheResolver.resolve({
         key: 'testKey',
         callback: null
       })).to.eventually.be.rejectedWith(/Illegal argument.*callback/);
@@ -221,6 +264,33 @@ describe('CacheResolver', function() {
           done();
         });
       }, 15);
+    });
+
+    it('should override default expiry', function() {
+      // set default cache expiry to 10 ms
+      var cacheResolver = new CacheResolver({ expireInSeconds: 0.01 });
+      // override expiry for 'testKey' to 100 ms
+      return expect(cacheResolver.resolve({
+        key: 'testKey',
+        expireInSeconds: 0.1,
+        callback: function() {
+          return Promise.resolve('1');
+        }
+      })
+      // expect the cache to still exist after 50 ms
+      .then(function(results) {
+        expect(results).to.equal('1');
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            cacheResolver.resolve({
+              key: 'testKey',
+              callback: function() {
+                return Promise.resolve('2');
+              }
+            }).then(resolve).catch(reject);
+          }, 50);
+        });
+      })).to.eventually.equal('1');
     });
 
     it('should remove expiry with null value', function(done) {

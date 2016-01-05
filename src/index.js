@@ -8,6 +8,9 @@ var CacheValue = require('./cache-value');
  * @description
  * In-memory cache. Resolves promises when adding to cache if the key
  * doesn't exist or has expired.
+ * @param {number} options.expireInSeconds Default expiry in seconds for all caches.
+ * Cache never expires if undefined.
+ * Each cache key can override this value by specifying in `resolve` function.
  *
  * @example
  * var CacheResolver = require('cache-resolver');
@@ -21,9 +24,11 @@ var CacheValue = require('./cache-value');
  *   console.log(result); // `value`
  * });
  */
-function CacheResolver() {
+function CacheResolver(options) {
+  options = options || {};
   // cache of promises
   this._cache = {};
+  this._expireInSeconds = options.expireInSeconds;
 }
 
 /**
@@ -56,9 +61,10 @@ CacheResolver.prototype.resolve = function(options) {
     value.expireInSeconds(options.expireInSeconds);
     // cache value has not expired
     var timePassedInSeconds = (new Date().getTime() - value.time()) / 1000;
-    if (value.expireInSeconds() === undefined ||
-        value.expireInSeconds() === null ||
-        timePassedInSeconds < value.expireInSeconds()) {
+    var expireInSeconds = value.expireInSeconds() || this._expireInSeconds;
+    if (expireInSeconds === undefined ||
+        expireInSeconds === null ||
+        timePassedInSeconds < expireInSeconds) {
       return value.promise();
     }
   }
