@@ -122,6 +122,24 @@ describe('CacheResolver', function() {
       )).to.eventually.eql(['cachedValue', 'cachedValue']);
     });
 
+    it('should not cache when promise is rejected', function() {
+      var cacheResolver = new CacheResolver();
+      return expect(cacheResolver.resolve({
+        key: 'testKey',
+        callback: function() {
+          return Promise.reject(new Error('something bad happened'));
+        }
+      }).catch(function(error) {
+        expect(error).not.to.be.null;
+        return cacheResolver.resolve({
+          key: 'testKey',
+          callback: function() {
+            return Promise.resolve('success');
+          }
+        });
+      })).to.eventually.equal('success');
+    });
+
   }); // End .resolve
 
   //////////////////////////

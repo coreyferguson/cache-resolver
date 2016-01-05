@@ -63,7 +63,12 @@ CacheResolver.prototype.resolve = function(options) {
     }
   }
   // cache empty or expired, execute callback
-  this._cache[options.key] = new CacheValue(options.callback(), options.expireInSeconds);
+  var promise = options.callback();
+  this._cache[options.key] = new CacheValue(promise, options.expireInSeconds);
+  // remove errors from cache
+  promise.catch(function(error) {
+    this.remove(options.key);
+  }.bind(this));
   return this._cache[options.key].promise();
 };
 
