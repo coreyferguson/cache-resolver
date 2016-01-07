@@ -7,7 +7,7 @@ describe('CacheResolver', function() {
   describe('constructor', function() {
 
     it('should accept default expiry', function() {
-      var cacheResolver = new CacheResolver({ expireInSeconds: 0.1 });
+      var cacheResolver = new CacheResolver({ expireInSeconds: 0.02 });
       // set cached value
       return expect(cacheResolver.resolve({
         key: 'testKey',
@@ -26,7 +26,7 @@ describe('CacheResolver', function() {
                 return Promise.resolve('2');
               }
             }).then(resolve).catch(reject);
-          }, 50);
+          }, 10);
         });
       })
       // cache should have expired by now
@@ -40,7 +40,7 @@ describe('CacheResolver', function() {
                 return Promise.resolve('3');
               }
             }).then(resolve).catch(reject);
-          }, 100);
+          }, 30);
         });
       })).to.eventually.equal('3');
     });
